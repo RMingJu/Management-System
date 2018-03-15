@@ -1,0 +1,167 @@
+CREATE PROC 產品資料查詢
+AS
+
+SELECT A.編號,A.項目,A.品名 ,A.條碼  FROM 產品資料 AS A
+DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+
+GO
+--------------------------------------------------------------------------------
+
+CREATE PROC 庫存表查詢
+AS
+
+SELECT A.編號,B.項目,B.品名,A.數量, AVG(C.價格) AS 平均進貨價格
+ FROM 庫存表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號 
+			      LEFT JOIN 進貨表 AS C ON A.編號 = C.編號
+				  GROUP BY A.編號,B.項目,B.品名,A.數量
+
+
+DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+
+GO
+
+CREATE PROC 庫存表項目查詢
+@item NVARCHAR(20)
+AS
+
+
+SELECT A.編號,B.項目,B.品名,A.數量, AVG(C.價格) AS 平均進貨價格
+FROM 庫存表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號 
+			     LEFT JOIN 進貨表 AS C ON A.編號 = C.編號
+WHERE B.項目 LIKE @item+'%' OR B.品名 LIKE '%'+@item OR B.品名 LIKE '%'+@item+'%'
+GROUP BY A.編號,B.項目,B.品名,A.數量
+
+DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+
+GO
+
+
+
+CREATE PROC 庫存表品名查詢
+@name NVARCHAR(20)
+AS
+
+SELECT A.編號,B.項目,B.品名,A.數量, AVG(C.價格) AS 平均進貨價格
+ FROM 庫存表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號 
+			      LEFT JOIN 進貨表 AS C ON A.編號 = C.編號
+				  WHERE B.品名 LIKE @name+'%' OR B.品名 LIKE '%'+@name OR B.品名 LIKE '%'+@name+'%'
+				  GROUP BY A.編號,B.項目,B.品名,A.數量
+
+DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+GO
+
+----------------------------------------------------------------------------------------------------
+CREATE PROC 進貨表查詢
+AS
+
+SELECT A.流水號, A.編號,B.項目,B.品名, A.價格 AS 進貨價格 ,A.數量, A.日期
+ FROM 進貨表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號
+
+ DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+
+GO
+
+CREATE PROC 進貨表項目查詢
+@item NVARCHAR(20)
+AS
+
+
+SELECT A.流水號,A.編號,B.項目,B.品名, A.價格 AS 進貨價格 ,A.數量, A.日期
+ FROM 進貨表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號
+ WHERE B.項目 LIKE @item+'%' OR B.品名 LIKE '%'+@item OR B.品名 LIKE '%'+@item+'%'
+  
+  DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+
+GO
+
+
+CREATE PROC 進貨表品名查詢
+@name NVARCHAR(30)
+AS
+
+SELECT A.流水號,A.編號,B.項目,B.品名, A.價格 AS 進貨價格 ,A.數量, A.日期
+ FROM 進貨表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號
+ WHERE B.品名 LIKE @name+'%' OR B.品名 LIKE '%'+@name OR B.品名 LIKE '%'+@name+'%'
+
+ DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+  
+GO
+
+
+CREATE PROC 進貨表日期月份查詢
+@date DATE
+AS
+
+SELECT A.流水號,A.編號,B.項目,B.品名, A.價格 AS 進貨價格 ,A.數量, A.日期
+ FROM 進貨表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號
+ WHERE ( 
+			DATEPART(YEAR,A.日期) = DATEPART(YEAR,@date) AND 
+			DATEPART(MONTH,A.日期) = DATEPART(MONTH,@date) 
+		)
+ DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+  
+GO
+
+----------------------------------------------------------------------------------------------------
+CREATE PROC 出貨表查詢
+AS
+
+SELECT  A.流水號,A.編號,B.項目,B.品名, A.價格 AS 出貨價格 ,A.數量, A.日期
+FROM 出貨表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號
+
+ DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+
+GO
+
+
+CREATE PROC 出貨表項目查詢
+@item NVARCHAR(20)
+AS
+
+SELECT  A.流水號,A.編號,B.項目,B.品名, A.價格 AS 出貨價格 ,A.數量, A.日期
+FROM 出貨表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號
+WHERE B.項目 LIKE @item+'%' OR B.品名 LIKE '%'+@item OR B.品名 LIKE '%'+@item+'%'
+
+ DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+
+GO
+
+
+CREATE PROC 出貨表品名查詢
+@name NVARCHAR(30)
+AS
+
+SELECT  A.流水號,A.編號,B.項目,B.品名, A.價格 AS 出貨價格 ,A.數量, A.日期
+FROM 出貨表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號
+WHERE B.品名 LIKE @name+'%' OR B.品名 LIKE '%'+@name OR B.品名 LIKE '%'+@name+'%'
+
+ DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+
+GO
+
+
+CREATE PROC 出貨表日期月份查詢
+@date DATE
+AS
+
+SELECT A.流水號,A.編號,B.項目,B.品名, A.價格 AS 進貨價格 ,A.數量, A.日期
+ FROM 出貨表 AS A JOIN 產品資料 AS B ON A.編號 = B.編號
+ WHERE ( 
+			DATEPART(YEAR,A.日期) = DATEPART(YEAR,@date) AND 
+			DATEPART(MONTH,A.日期) = DATEPART(MONTH,@date) 
+		)
+ DECLARE @count INT = @@ROWCOUNT
+RETURN @count   --回傳總數
+  
+GO

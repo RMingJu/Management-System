@@ -1,0 +1,105 @@
+
+CREATE PROC 產品資料INSERT
+@number INT , @item NVARCHAR(20) ,@name NVARCHAR(30),@barcode NVARCHAR(20)
+AS
+	INSERT INTO 產品資料(編號,項目,品名,條碼) VALUES(@number,@item,@name,@barcode)
+	INSERT INTO 庫存表(編號,數量) VALUES(@number,0)
+GO
+
+
+CREATE PROC 產品資料DELETE
+@number INT
+AS
+	DELETE FROM 產品資料 WHERE 編號 = @number
+	DELETE FROM 庫存表   WHERE 編號 = @number
+	DELETE FROM 進貨表   WHERE 編號 = @number
+	DELETE FROM 出貨表   WHERE 編號 = @number
+GO
+
+
+
+CREATE PROC 進貨表INSERT
+@number INT ,@price INT ,@quantity INT
+AS
+	INSERT INTO 進貨表(編號,價格,數量) VALUES(@number,@price,@quantity)
+
+	DECLARE @old_quantity INT;
+	SELECT @old_quantity=數量 FROM 庫存表 WHERE 編號 = @number
+
+	UPDATE 庫存表 
+	SET 數量 = @old_quantity + @quantity
+	WHERE 編號 = @number
+GO
+
+
+--會影響庫存表
+CREATE PROC 進貨表DELETE
+@serial_number VARCHAR(11)
+AS
+	DECLARE @number INT;
+	DECLARE @quantity INT;
+	SELECT @number=編號,  @quantity=數量 FROM 進貨表 WHERE 流水號 = @serial_number
+
+	DEClARE @old_quantity INT;
+	SELECT @old_quantity=數量 FROM 庫存表 WHERE 編號 = @number
+	
+	UPDATE 庫存表 
+	SET 數量 = @old_quantity - @quantity
+	WHERE 編號 = @number
+
+	DELETE FROM 進貨表 WHERE 流水號 = @serial_number
+GO
+
+
+--僅清除不影響到庫存表
+CREATE PROC ONLY_進貨表DELETE
+@serial_number VARCHAR(11)
+AS
+	DELETE FROM 進貨表 WHERE 流水號 =@serial_number
+GO
+
+---------------------------------------------------------------------------------------------------------
+
+CREATE PROC 出貨表INSERT
+@number INT ,@price INT ,@quantity INT
+AS
+	INSERT INTO 出貨表(編號,價格,數量) VALUES(@number,@price,@quantity)
+
+	DECLARE @old_quantity INT;
+	SELECT @old_quantity=數量 FROM 庫存表 WHERE 編號 = @number
+
+	UPDATE 庫存表 
+	SET 數量 = @old_quantity - @quantity
+	WHERE 編號 = @number
+GO
+
+
+
+--會影響庫存表
+CREATE PROC 出貨表DELETE
+@serial_number VARCHAR(11)
+AS
+	DECLARE @number INT;
+	DECLARE @quantity INT;
+	SELECT @number=編號,  @quantity=數量 FROM 出貨表 WHERE 流水號 = @serial_number
+
+	DEClARE @old_quantity INT;
+	SELECT @old_quantity=數量 FROM 庫存表 WHERE 編號 = @number
+	
+	UPDATE 庫存表 
+	SET 數量 = @old_quantity + @quantity
+	WHERE 編號 = @number
+
+	DELETE FROM 出貨表 WHERE 流水號 = @serial_number
+GO
+
+
+
+
+--僅清除不影響到庫存表
+CREATE PROC ONLY_出貨表DELETE
+@serial_number VARCHAR(11)
+AS
+	DELETE FROM 出貨表 WHERE 流水號 =@serial_number
+GO
+

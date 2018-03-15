@@ -1,0 +1,135 @@
+
+CREATE FUNCTION 出貨表流水號() RETURNS VARCHAR(11) 
+AS
+BEGIN
+ DECLARE @firstOrderId VARCHAR(11) 
+ DECLARE @lastOrderId VARCHAR(11)  --表內目前最後的單號
+ DECLARE @finalOrderId VARCHAR(11) --最後新增回傳的單號
+ DECLARE @yy VARCHAR(3) --年(民國)
+ DECLARE @mm VARCHAR(2) --月
+ DECLARE @dd VARCHAR(2) --日
+ DECLARE @numS VARCHAR(4) --取出/放入的流水號
+ DECLARE @num INT
+ -------------------------------------------------------------
+ SET @yy = CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())-1911)
+ SET @mm = CONVERT(VARCHAR,DATEPART(MONTH,GETDATE()))
+ SET @dd = CONVERT(VARCHAR,DATEPART(DAY,GETDATE()))
+  SET @yy = CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())-1911)
+ SET @mm = CONVERT(VARCHAR,DATEPART(MONTH,GETDATE()))
+ SET @dd = CONVERT(VARCHAR,DATEPART(DAY,GETDATE()))
+ IF LEN(@mm) < 2 SET @mm= '0'+@mm  --抓出月的位數，只有個位數自動補0
+ IF LEN(@dd) < 2 SET @dd= '0'+@dd  --抓出日的位數，只有個位數自動補0
+ SET @firstOrderId = @yy+@mm+@dd --將年月日結合
+ 
+ -------------------------------------------------------------
+ --找出最後一筆，並將該值賦予給@lastOrderId------------------------
+ SELECT TOP(1) @lastOrderId=流水號 
+ FROM 出貨表
+ WHERE 流水號 LIKE(@firstOrderId+'%')
+ ORDER BY 流水號 DESC
+ 
+ -------------------------------------------------------------
+ --若筆數為0，表示第1筆------------------------------------------
+ --若有筆數，找出最後1位數+1並賦予回去@finalOrderId ---------------
+ IF(@@ROWCOUNT=0)
+  SET @finalOrderId=@firstOrderId+'0001'
+ ELSE
+  BEGIN
+   SET @numS = SUBSTRING(@lastOrderId,8,4)
+   SET @num = CAST(@numS AS INT) + 1
+   SET @numS =REPLICATE('0',4-LEN(@num)) + CAST(@num AS VARCHAR)
+             --抓出位數，自動補零為4位數
+   SET @finalOrderId = @firstOrderId + @numS
+  END
+ -------------------------------------------------------------
+ RETURN @finalorderId --傳回值
+END
+
+
+
+CREATE FUNCTION 進貨表流水號() RETURNS VARCHAR(11) 
+AS
+BEGIN
+ DECLARE @firstOrderId VARCHAR(11) 
+ DECLARE @lastOrderId VARCHAR(11)  --表內目前最後的單號
+ DECLARE @finalOrderId VARCHAR(11) --最後新增回傳的單號
+ DECLARE @yy VARCHAR(3) --年(民國)
+ DECLARE @mm VARCHAR(2) --月
+ DECLARE @dd VARCHAR(2) --日
+ DECLARE @numS VARCHAR(4) --取出/放入的流水號
+ DECLARE @num INT
+ -------------------------------------------------------------
+ SET @yy = CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())-1911)
+ SET @mm = CONVERT(VARCHAR,DATEPART(MONTH,GETDATE()))
+ SET @dd = CONVERT(VARCHAR,DATEPART(DAY,GETDATE()))
+  SET @yy = CONVERT(VARCHAR,DATEPART(YEAR,GETDATE())-1911)
+ SET @mm = CONVERT(VARCHAR,DATEPART(MONTH,GETDATE()))
+ SET @dd = CONVERT(VARCHAR,DATEPART(DAY,GETDATE()))
+ IF LEN(@mm) < 2 SET @mm= '0'+@mm  --抓出月的位數，只有個位數自動補0
+ IF LEN(@dd) < 2 SET @dd= '0'+@dd  --抓出日的位數，只有個位數自動補0
+ SET @firstOrderId = @yy+@mm+@dd --將年月日結合
+ 
+ -------------------------------------------------------------
+ --找出最後一筆，並將該值賦予給@lastOrderId------------------------
+ SELECT TOP(1) @lastOrderId=流水號 
+ FROM 進貨表
+ WHERE 流水號 LIKE(@firstOrderId+'%')
+ ORDER BY 流水號 DESC
+ 
+ -------------------------------------------------------------
+ --若筆數為0，表示第1筆------------------------------------------
+ --若有筆數，找出最後1位數+1並賦予回去@finalOrderId ---------------
+ IF(@@ROWCOUNT=0)
+  SET @finalOrderId=@firstOrderId+'0001'
+ ELSE
+  BEGIN
+   SET @numS = SUBSTRING(@lastOrderId,8,4)
+   SET @num = CAST(@numS AS INT) + 1
+   SET @numS =REPLICATE('0',4-LEN(@num)) + CAST(@num AS VARCHAR)
+             --抓出位數，自動補零為4位數
+   SET @finalOrderId = @firstOrderId + @numS
+  END
+ -------------------------------------------------------------
+ RETURN @finalorderId --傳回值
+END
+
+
+
+
+
+
+CREATE TABLE 產品資料
+(
+	編號 INT NOT NULL PRIMARY KEY,
+	項目 NVARCHAR(20),
+	品名 NVARCHAR(30),
+	條碼 NVARCHAR(20)
+)
+
+CREATE TABLE 庫存表
+(
+	編號 INT NOT NULL PRIMARY KEY,
+	數量 INT
+)
+
+
+CREATE TABLE 進貨表
+(
+	流水號 VARCHAR(11) DEFAULT dbo.進貨表流水號() PRIMARY KEY,
+	編號 INT NOT NULL,
+	價格 INT NOT NULL,
+	數量 INT NOT NULL,
+	日期 DATE DEFAULT GETDATE()
+)
+
+
+CREATE TABLE 出貨表
+(
+	流水號 VARCHAR(11) DEFAULT dbo.進貨表流水號() PRIMARY KEY,
+	編號 INT NOT NULL,
+	價格 INT NOT NULL,
+	數量 INT NOT NULL,
+	日期 DATE DEFAULT GETDATE()
+)
+
+

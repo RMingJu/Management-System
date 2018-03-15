@@ -1,0 +1,9 @@
+CREATE PROC 產品資料BarCode查詢
+@barcode NVARCHAR(20)
+,@number INT OUTPUT,@name NVARCHAR(30) OUTPUT,@item NVARCHAR(20) OUTPUT
+,@quantity INT OUTPUT
+AS
+	SELECT @number = A.編號 , @name = A.品名 , @item = A.項目 ,@quantity = B.數量
+	FROM 產品資料 AS A JOIN 庫存表 AS B ON A.編號 = B.編號
+	WHERE A.條碼 = @barcode
+GO
